@@ -8,14 +8,22 @@ using Android.Support.V7.Widget;
 using Toolbar = Android.Support.V7.Widget.Toolbar;
 using Android.Support.V7.App;
 using Android.Support.Design.Widget;
+using Android.Support.V4.Widget;
+using System.Threading.Tasks;
+using Android.Support.V4.View;
+using Android.Runtime;
+using Android.Gms.Ads;
 
 namespace my_cards
 {
-    [Activity(Label = "my_cards", MainLauncher = true,Theme = "@style/MyTheme", Icon = "@drawable/icon")]
+    [Activity(Label = "Best Predictions", MainLauncher = true,Theme = "@style/MyTheme", Icon = "@drawable/icon")]
     public class MainActivity : AppCompatActivity
     {
         RecyclerView mRecyclerView;
-
+        SwipeRefreshLayout myswipeRefresh;
+        FloatingActionButton myfab;
+        AdView mAdView;
+        InterstitialAd interstitialAds;
         // Layout manager that lays out each card in the RecyclerView:
         RecyclerView.LayoutManager mLayoutManager;
 
@@ -34,10 +42,24 @@ namespace my_cards
 
             // Set our view from the "main" layout resource:
             SetContentView(Resource.Layout.Main);
+            interstitialAds = new InterstitialAd(this);
+            mAdView = FindViewById<AdView>(Resource.Id.adView);
+            var adRequest = new AdRequest.Builder().Build();
+            mAdView.LoadAd(adRequest);
+
+            interstitialAds.AdUnitId = "ca-app-pub-1120846610061033/5377390906";
+            // loading test ad using adrequest
+            interstitialAds.LoadAd(adRequest);
+
+            interstitialAds.AdListener = new AdListener(this);
+
 
             var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
-            SupportActionBar.Title = "Movies and Series";
+            SupportActionBar.Title = "TOP/BEST TIPSTARS";
+
+            myfab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+
 
             // Get our RecyclerView layout:
             mRecyclerView = FindViewById<RecyclerView>(Resource.Id.recyclerView);
@@ -48,12 +70,20 @@ namespace my_cards
             // Use the built-in linear layout manager:
             mLayoutManager = new LinearLayoutManager(this);
 
+
             // Or use the built-in grid layout manager (two horizontal rows):
             // mLayoutManager = new GridLayoutManager
             //        (this, 2, GridLayoutManager.Horizontal, false);
 
             // Plug the layout manager into the RecyclerView:
             mRecyclerView.SetLayoutManager(mLayoutManager);
+
+            myswipeRefresh = FindViewById<SwipeRefreshLayout>(Resource.Id.refresher);
+            myswipeRefresh.SetColorScheme(Resource.Color.Red, Resource.Color.Orange,
+                                                Resource.Color.Yellow, Resource.Color.Green,
+                                                Resource.Color.Blue, Resource.Color.Indigo,
+                                                Resource.Color.Violet);
+            myswipeRefresh.Refresh += MyswipeRefresh_Refresh;
 
             //............................................................
             // Adapter Setup:
@@ -67,8 +97,56 @@ namespace my_cards
 
             // Plug the adapter into the RecyclerView:
             mRecyclerView.SetAdapter(mAdapter);
+
+            myfab.Click += async delegate (object sender, EventArgs e)
+            {
+                myswipeRefresh.Refreshing = true;
+                await Task.Delay(5000);
+                myswipeRefresh.Refreshing = false;
+            };
         }
-        public override bool OnCreateOptionsMenu(IMenu menu) {
+        class AdListener : Android.Gms.Ads.AdListener
+        {
+            MainActivity main;
+
+            public AdListener(MainActivity innerMain)
+            {
+                main = innerMain;
+            }
+
+            public override void OnAdLoaded()
+            {
+                base.OnAdLoaded();
+                main.interstitialAds.Show();
+            }
+        }
+            Android.Support.V7.Widget.ShareActionProvider actionProvider;
+
+        async void MyswipeRefresh_Refresh(object sender, EventArgs e)
+        {
+            await Task.Delay(5000);
+            (sender as SwipeRefreshLayout).Refreshing = false;
+        }
+
+
+        //public override bool OnCreateOptionsMenu(IMenu menu) {
+        //    this.MenuInflater.Inflate(Resource.Menu.top_menus, menu);
+        //    var shareItem = menu.FindItem(Resource.Id.menu_share);
+        //    var provider = MenuItemCompat.GetActionProvider(shareItem);
+
+
+
+        //   var intent = new Intent(Intent.ActionSend);
+        //    intent.SetType("text/plain");
+        //    intent.PutExtra(Intent.ExtraText, "https://play.google.com/store/apps/details?id=com.hamsempire.bestpredictions");
+
+        //    StartActivity(Intent.CreateChooser(intent,"Share via....."));
+
+
+        //    return base.OnCreateOptionsMenu(menu);
+        //}
+        public override bool OnCreateOptionsMenu(IMenu menu)
+        {
             MenuInflater.Inflate(Resource.Menu.top_menus, menu);
             return base.OnCreateOptionsMenu(menu);
         }
@@ -83,11 +161,19 @@ namespace my_cards
                     intent = new Intent(this, typeof(About));
                     break;
                 case
+                    Resource.Id.menu_share:
+                    intent = new Intent(Intent.ActionSend);
+                    intent.SetType("text/plain");
+                    intent.PutExtra(Intent.ExtraText, "https://play.google.com/store/apps/details?id=com.hamsempire.bestpredictions");
+
+                   
+                    break;
+                case
                     Resource.Id.menu_shutdown:
                     //set alert for executing the task
                     Android.Support.V7.App.AlertDialog.Builder alert = new Android.Support.V7.App.AlertDialog.Builder(this);
-                    alert.SetTitle("Are you Sure?");
-                    alert.SetMessage("You Want To Shutdown The App?");
+                    alert.SetTitle("Shutdown?");
+                    alert.SetMessage("Do You Want To Shutdown The App?");
                     alert.SetPositiveButton("Yes", (senderAlert, args) => {
                         Java.Lang.JavaSystem.Exit(0);
                     });
@@ -101,10 +187,7 @@ namespace my_cards
                     dialog.Show();
                     
                     break;
-                case
-                    Resource.Id.menu_refresh:
-                    intent = new Intent(this, typeof(MainActivity));
-                    break;
+               
                 default:
                     return base.OnOptionsItemSelected(item);
             }
@@ -115,13 +198,95 @@ namespace my_cards
             return base.OnOptionsItemSelected(item);
            
         }
+        public override void OnBackPressed()
+        {
+            //set alert for executing the task
+            Android.Support.V7.App.AlertDialog.Builder alert = new Android.Support.V7.App.AlertDialog.Builder(this);
+            alert.SetTitle("Shutdown?");
+            alert.SetMessage("Do You Want To Shutdown The App?");
+            alert.SetPositiveButton("Yes", (senderAlert, args) => {
+                Java.Lang.JavaSystem.Exit(0);
+            });
+
+            alert.SetNegativeButton("No", (senderAlert, args) => {
+                Snackbar.Make(mRecyclerView, "Okay keep ejoying using HamSofts App", Snackbar.LengthShort)
+               .Show();
+            });
+
+            Dialog dialog = alert.Create();
+            dialog.Show();
+        }
 
         // Handler for the item click event:
         void OnItemClick(object sender, int position)
         {
-            // Display a toast that briefly shows the enumeration of the selected photo:
+            Intent intent = null;
             int photoNum = position + 1;
-            Toast.MakeText(this, "This is photo number " + photoNum, ToastLength.Short).Show();
+            switch (photoNum)
+            {
+                case
+                    1:
+                    intent = new Intent(this, typeof(adibet));
+                    break;
+                case
+                    2:
+                    intent = new Intent(this, typeof(forebet));
+                    break;
+                case
+                    3:
+                    intent = new Intent(this, typeof(soccervista));
+                    break;
+                case
+                    4:
+                    intent = new Intent(this, typeof(windrawwin));
+                    break;
+                case
+                    5:
+                    intent = new Intent(this, typeof(zulubet));
+                    break;
+                case
+                    6:
+                    intent = new Intent(this, typeof(prosoccer));
+                    break;
+                case
+                    7:
+                    intent = new Intent(this, typeof(vitibet));
+                    break;
+                case
+                    8:
+                    intent = new Intent(this, typeof(betshoot));
+                    break;
+                case
+                    9:
+                    intent = new Intent(this, typeof(predictz));
+                    break;
+                case
+                    10:
+                    intent = new Intent(this, typeof(bestbet));
+                    break;
+                case
+                    11:
+                    intent = new Intent(this, typeof(betsexplained));
+                    break;
+                //default:
+                    //int photoNum = position + 1;
+                    //Snackbar.Make(mRecyclerView, "This is Series number : " + photoNum, Snackbar.LengthShort)
+                    //.Show();
+
+            }
+            if(intent != null)
+            {
+                StartActivity(intent);
+            }
+
+            //var intent = new Intent(this, typeof(g_o_t));
+            //intent.PutExtra("index", position = 1);
+            //StartActivity(intent);
+            // Display a toast that briefly shows the enumeration of the selected photo:
+            //int photoNum = position + 1;
+            //Snackbar.Make(mRecyclerView, "This is Series number : " + photoNum, Snackbar.LengthShort)
+            //.Show();
+
         }
     }
 

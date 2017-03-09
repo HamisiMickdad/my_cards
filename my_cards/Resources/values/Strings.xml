@@ -2,4 +2,5 @@
 <resources>
     <string name="Hello">Hello World, Click Me!</string>
     <string name="ApplicationName">my_cards</string>
+  <string name="test_banner_ad_unit_id">ca-app-pub-1120846610061033/5575867304</string>
 </resources>

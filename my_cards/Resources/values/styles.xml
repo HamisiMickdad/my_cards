@@ -1,5 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <resources>
+  <color name="Red">#F44336</color>
+  <color name="Orange">#FF9800</color>
+  <color name="Yellow">#FFEB3B</color>
+  <color name="Green">#4CAF50</color>
+  <color name="Blue">#2196F3</color>
+  <color name="Indigo">#3F51B5</color>
+  <color name="Violet">#00BCD4</color>
+  
   <style name="MyTheme" parent="MyTheme.Base">
 
   </style>
@@ -9,17 +17,14 @@
     <item name="windowNoTitle">true</item>
     <!--We will be using the toolbar so no need to show ActionBar-->
     <item name="windowActionBar">false</item>
-    <!-- Set theme colors from http://www.google.com/design/spec/style/color.html#color-color-palette-->
-    <!-- colorPrimary is used for the default action bar background -->
-    <item name="colorPrimary">#795548</item>
-    <!-- colorPrimaryDark is used for the status bar -->
-    <item name="colorPrimaryDark">#5D4037</item>
-    <!-- colorAccent is used as the default value for colorControlActivated
-         which is used to tint widgets -->
-    <item name="colorAccent">#795548</item>
+
+    <item name="android:windowTranslucentStatus">true</item>
 
     <item name="colorControlHighlight">#FF4081</item>
     <!-- You can also set colorControlNormal, colorControlActivated
          colorControlHighlight and colorSwitchThumbNormal. -->
+    <item name="colorPrimary">#795548</item>
+    <item name="colorPrimaryDark">#5D4037</item>
+    <item name="colorAccent">#795548</item>
   </style>
 </resources>
