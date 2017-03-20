@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Android.Support.V4.View;
 using Android.Runtime;
 using Android.Gms.Ads;
-
 namespace my_cards
 {
     [Activity(Label = "Best Predictions", MainLauncher = true,Theme = "@style/MyTheme", Icon = "@drawable/icon")]
@@ -24,6 +23,8 @@ namespace my_cards
         FloatingActionButton myfab;
         AdView mAdView;
         InterstitialAd interstitialAds;
+        DrawerLayout drawerLayout;
+        NavigationView navigationView;
         // Layout manager that lays out each card in the RecyclerView:
         RecyclerView.LayoutManager mLayoutManager;
 
@@ -33,70 +34,102 @@ namespace my_cards
         // Photo album that is managed by the adapter:
         PhotoAlbum mPhotoAlbum;
 
-        protected override void OnCreate(Bundle bundle)
-        {
-            base.OnCreate(bundle);
+		protected override void OnCreate(Bundle bundle)
+		{
+			base.OnCreate(bundle);
 
-            // Instantiate the photo album:
-            mPhotoAlbum = new PhotoAlbum();
+			// Instantiate the photo album:
+			mPhotoAlbum = new PhotoAlbum();
 
-            // Set our view from the "main" layout resource:
-            SetContentView(Resource.Layout.Main);
-            interstitialAds = new InterstitialAd(this);
-            mAdView = FindViewById<AdView>(Resource.Id.adView);
-            var adRequest = new AdRequest.Builder().Build();
-            mAdView.LoadAd(adRequest);
+			// Set our view from the "main" layout resource:
+			SetContentView(Resource.Layout.Main);
+			interstitialAds = new InterstitialAd(this);
+			mAdView = FindViewById<AdView>(Resource.Id.adView);
+			var adRequest = new AdRequest.Builder().Build();
+			mAdView.LoadAd(adRequest);
 
-            interstitialAds.AdUnitId = "ca-app-pub-1120846610061033/5377390906";
-            // loading test ad using adrequest
-            interstitialAds.LoadAd(adRequest);
+			interstitialAds.AdUnitId = "ca-app-pub-1120846610061033/5377390906";
+			// loading test ad using adrequest
+			interstitialAds.LoadAd(adRequest);
 
-            interstitialAds.AdListener = new AdListener(this);
-
-
-            var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
-            SetSupportActionBar(toolbar);
-            SupportActionBar.Title = "TOP/BEST TIPSTARS";
-
-            myfab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+			interstitialAds.AdListener = new AdListener(this);
 
 
-            // Get our RecyclerView layout:
-            mRecyclerView = FindViewById<RecyclerView>(Resource.Id.recyclerView);
+			var toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
+			SetSupportActionBar(toolbar);
+			SupportActionBar.Title = "BEST TIPSTARS";
 
-            //............................................................
-            // Layout Manager Setup:
+			SupportActionBar.SetHomeAsUpIndicator(Resource.Drawable.ic_menu);
+			SupportActionBar.SetDisplayHomeAsUpEnabled(true);
 
-            // Use the built-in linear layout manager:
-            mLayoutManager = new LinearLayoutManager(this);
+			drawerLayout = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
+			navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
 
 
-            // Or use the built-in grid layout manager (two horizontal rows):
-            // mLayoutManager = new GridLayoutManager
-            //        (this, 2, GridLayoutManager.Horizontal, false);
+			myfab = FindViewById<FloatingActionButton>(Resource.Id.fab);
 
-            // Plug the layout manager into the RecyclerView:
-            mRecyclerView.SetLayoutManager(mLayoutManager);
 
-            myswipeRefresh = FindViewById<SwipeRefreshLayout>(Resource.Id.refresher);
-            myswipeRefresh.SetColorScheme(Resource.Color.Red, Resource.Color.Orange,
-                                                Resource.Color.Yellow, Resource.Color.Green,
-                                                Resource.Color.Blue, Resource.Color.Indigo,
-                                                Resource.Color.Violet);
-            myswipeRefresh.Refresh += MyswipeRefresh_Refresh;
+			// Get our RecyclerView layout:
+			mRecyclerView = FindViewById<RecyclerView>(Resource.Id.recyclerView);
 
-            //............................................................
-            // Adapter Setup:
+			//............................................................
+			// Layout Manager Setup:
 
-            // Create an adapter for the RecyclerView, and pass it the
-            // data set (the photo album) to manage:
-            mAdapter = new PhotoAlbumAdapter(mPhotoAlbum);
+			// Use the built-in linear layout manager:
+			mLayoutManager = new LinearLayoutManager(this);
 
-            // Register the item click handler (below) with the adapter:
-            mAdapter.ItemClick += OnItemClick;
 
-            // Plug the adapter into the RecyclerView:
-            mRecyclerView.SetAdapter(mAdapter);
+			// Or use the built-in grid layout manager (two horizontal rows):
+			// mLayoutManager = new GridLayoutManager
+			//        (this, 2, GridLayoutManager.Horizontal, false);
+
+			// Plug the layout manager into the RecyclerView:
+			mRecyclerView.SetLayoutManager(mLayoutManager);
+
+			myswipeRefresh = FindViewById<SwipeRefreshLayout>(Resource.Id.refresher);
+			myswipeRefresh.SetColorScheme(Resource.Color.Red, Resource.Color.Orange,
+												Resource.Color.Yellow, Resource.Color.Green,
+												Resource.Color.Blue, Resource.Color.Indigo,
+												Resource.Color.Violet);
+			myswipeRefresh.Refresh += MyswipeRefresh_Refresh;
+
+			//............................................................
+			// Adapter Setup:
+
+			// Create an adapter for the RecyclerView, and pass it the
+			// data set (the photo album) to manage:
+			mAdapter = new PhotoAlbumAdapter(mPhotoAlbum);
+
+			// Register the item click handler (below) with the adapter:
+			mAdapter.ItemClick += OnItemClick;
+
+			// Plug the adapter into the RecyclerView:
+			mRecyclerView.SetAdapter(mAdapter);
+
+			navigationView.NavigationItemSelected += (sender, e) =>
+			{
+				e.MenuItem.SetChecked(true);
+				Intent intent = null;
+				switch (e.MenuItem.ItemId)
+				{
+					case
+					Resource.Id.nav_about:
+					intent = new Intent(this, typeof(About));
+					break;
+						case
+						Resource.Id.nav_share:
+						intent = new Intent(Intent.ActionSend);
+						intent.SetType("text/plain");
+						intent.PutExtra(Intent.ExtraText, "https://play.google.com/store/apps/details?id=com.hamsempire.bestpredictions");
+						break;
+				}
+				if (intent != null)
+				{
+					StartActivity(intent);
+				}
+				drawerLayout.CloseDrawers();
+			};
+		
 
             myfab.Click += async delegate (object sender, EventArgs e)
             {
@@ -120,16 +153,23 @@ namespace my_cards
                 main.interstitialAds.Show();
             }
         }
-            Android.Support.V7.Widget.ShareActionProvider actionProvider;
+           // Android.Support.V7.Widget.ShareActionProvider actionProvider;
 
         async void MyswipeRefresh_Refresh(object sender, EventArgs e)
         {
             await Task.Delay(5000);
             (sender as SwipeRefreshLayout).Refreshing = false;
         }
-
-
-        //public override bool OnCreateOptionsMenu(IMenu menu) {
+		//public override bool OnOptionsItemSelected(IMenuItem item)
+		//{
+			//switch (item.ItemId)
+			//{ 
+				//case Android.Resource.Id.nav_home:
+					//drawerLayout.OpenDrawer(Android.Support.V4.View.GravityCompat.Start);
+					//return true;
+			//}
+			//return base.OnOptionsItemSelected(item);
+		//}        //public override bool OnCreateOptionsMenu(IMenu menu) {
         //    this.MenuInflater.Inflate(Resource.Menu.top_menus, menu);
         //    var shareItem = menu.FindItem(Resource.Id.menu_share);
         //    var provider = MenuItemCompat.GetActionProvider(shareItem);
@@ -156,6 +196,14 @@ namespace my_cards
             Intent intent = null;
             switch (item.ItemId)
             {
+				case
+					Android.Resource.Id.Home:
+					drawerLayout.OpenDrawer(Android.Support.V4.View.GravityCompat.Start);
+					return true;
+				//	case
+				//	Resource.Id.nav_about:
+				//	intent = new Intent(this, typeof(About));
+				//break;
                 case
                     Resource.Id.menu_about:
                     intent = new Intent(this, typeof(About));
@@ -165,8 +213,6 @@ namespace my_cards
                     intent = new Intent(Intent.ActionSend);
                     intent.SetType("text/plain");
                     intent.PutExtra(Intent.ExtraText, "https://play.google.com/store/apps/details?id=com.hamsempire.bestpredictions");
-
-                   
                     break;
                 case
                     Resource.Id.menu_shutdown:
